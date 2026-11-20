@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Flag, Sun, Moon, Keyboard } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flag, Sun, Moon, Keyboard, Sparkles } from 'lucide-react';
 import { LapItem } from './types';
 import { formatTime } from './utils/formatTime';
 import { LapList } from './components/LapList';
 import { StopwatchDial } from './components/StopwatchDial';
+import { CreativeStudioModal } from './components/CreativeStudioModal';
 
 export function App() {
   const [isRunning, setIsRunning] = useState(false);
@@ -16,6 +17,7 @@ export function App() {
     return true;
   });
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
 
   const startTimeRef = useRef<number | null>(null);
   const accumulatedMsRef = useRef<number>(0);
@@ -79,6 +81,7 @@ export function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isStudioOpen) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.code === 'Space') {
         e.preventDefault();
@@ -93,7 +96,7 @@ export function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleStartPause, handleLap, handleReset]);
+  }, [handleStartPause, handleLap, handleReset, isStudioOpen]);
 
   const formatted = formatTime(elapsedMs);
 
@@ -122,6 +125,18 @@ export function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsStudioOpen(true)}
+            aria-label="Abrir Estúdio Criativo"
+            className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+              isDark
+                ? 'bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-zinc-800'
+                : 'bg-white hover:bg-stone-100 text-amber-600 border border-stone-200 shadow-sm'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Estúdio Criativo</span>
+          </button>
           <button
             onClick={() => setShowShortcuts((prev) => !prev)}
             aria-label="Atalhos de teclado"
@@ -235,6 +250,13 @@ export function App() {
           Precisão de milissegundos • Pressione Espaço para iniciar
         </p>
       </footer>
+
+      <CreativeStudioModal
+        isOpen={isStudioOpen}
+        onClose={() => setIsStudioOpen(false)}
+        isDark={isDark}
+        formattedTime={formatted}
+      />
     </div>
   );
 }
